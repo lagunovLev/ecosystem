@@ -1,6 +1,3 @@
-from dataclasses import dataclass
-
-
 class Creature:
     def __init__(self, name, type, age, prey):
         self.name = name
@@ -37,10 +34,14 @@ class Ecosystem:
 
     def remove_creature_by_name(self, name):
         elements = self.search_creature_by_name(name)
+        if not elements:
+            print('\033[4m' + f"Таких cуществ не существует" + '\033[0m')
         self.remove_creatures(elements)
 
     def remove_creature_by_type(self, type):
         elements = self.search_creature_by_type(type)
+        if not elements:
+            print('\033[4m' + f"Таких cуществ не существует" + '\033[0m')
         self.remove_creatures(elements)
 
     def search_creature_by_type(self, type):
@@ -50,7 +51,11 @@ class Ecosystem:
         return list(filter(lambda x: x.name == name, self.creatures))
 
     def remove_creatures(self, creatures):
-        self.creatures = [e for e in self.creatures if e not in creatures]
+        for c in creatures:
+            if c not in self.creatures:
+                print('\033[4m' + f"Существа {c} не существует" + '\033[0m')
+            else:
+                self.creatures.remove(c)
 
     def get_plants(self):
         return filter(lambda x: type(x) is Plant, self.creatures)
@@ -61,10 +66,10 @@ class Ecosystem:
     def display(self):
         print("Растения:")
         for plant in self.get_plants():
-            print(plant)
+            print("\t" + str(plant))
         print("Животные:")
         for animal in self.get_animals():
-            print(animal)
+            print("\t" + str(animal))
 
 
 ecosystem = Ecosystem()
@@ -72,7 +77,7 @@ ecosystem = Ecosystem()
 trava = Plant("Трава", "Наземные", 10, [])
 baran = Animal("Баран", "Млекопитающее", 25, [trava])
 vodorosly = Plant("Водоросли", "Подводные", 15, [])
-mysh = Animal("Мышь", "Крыса", 3, [])
+mysh = Animal("Мышь", "Млекопитающее", 3, [])
 sova = Animal("Сова", "Птица", 8, [mysh])
 
 ecosystem.add_creature(trava)
@@ -80,9 +85,11 @@ ecosystem.add_creature(vodorosly)
 ecosystem.add_creature(baran)
 ecosystem.add_creature(sova)
 ecosystem.add_creature(mysh)
+
 ecosystem.display()
 ecosystem.remove_creature_by_name("Трава")
-ecosystem.remove_creature_by_type("Крыса")
+ecosystem.remove_creature_by_name("Трава")
+#ecosystem.remove_creature_by_type("Млекопитающее")
 print("===========================================")
 ecosystem.display()
 print("===========================================")
