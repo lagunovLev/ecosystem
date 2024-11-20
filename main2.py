@@ -1,3 +1,38 @@
+import csv
+
+
+class Database:
+    def __init__(self, filename):
+        self.filename = filename
+
+    def save_ecosystem(self, ecosystem):
+        with open(self.filename, mode="w", encoding='utf-8') as w_file:
+            file_writer = csv.writer(w_file, delimiter=";", lineterminator="\r")
+            file_writer.writerow(["Название", "Тип", "Возраст", "Чем питается"])
+            for c in ecosystem.creatures:
+                file_writer.writerow([c.name, c.type, c.age, ''.join(str(x.name) for x in c.prey)])
+
+    def read_ecosystem(self, logger):
+        ecosystem = Ecosystem(logger)
+        with open(self.filename, encoding='utf-8') as r_file:
+            file_reader = csv.reader(r_file, delimiter=";")
+            for row in file_reader:
+                prey = row[3]
+                prey = prey.split(" ")
+                ecosystem.add_creature(Creature(row[0], row[1], row[2], prey))
+        for c in ecosystem.creatures:
+            prey = c.prey
+            c.prey = []
+            for prey_name in prey:
+                c.prey.append(ecosystem.search_creature_by_name(prey_name))
+        return ecosystem
+
+
+class Logger:
+    def log(self, string):
+        print('\033[4m' + string + '\033[0m')
+
+
 class Creature:
     def __init__(self, name, type, age, prey):
         self.name = name
@@ -26,8 +61,9 @@ class Animal(Creature):
 
 
 class Ecosystem:
-    def __init__(self):
+    def __init__(self, logger):
         self.creatures: list[Creature] = []
+        self.logger = logger
 
     def add_creature(self, creature):
         self.creatures.append(creature)
@@ -35,13 +71,13 @@ class Ecosystem:
     def remove_creature_by_name(self, name):
         elements = self.search_creature_by_name(name)
         if not elements:
-            print('\033[4m' + f"Таких cуществ не существует" + '\033[0m')
+            self.logger.log(f"Существ с именем {name} не нашлось")
         self.remove_creatures(elements)
 
     def remove_creature_by_type(self, type):
         elements = self.search_creature_by_type(type)
         if not elements:
-            print('\033[4m' + f"Таких cуществ не существует" + '\033[0m')
+            self.logger.log(f"Существ с типом {type} не нашлось")
         self.remove_creatures(elements)
 
     def search_creature_by_type(self, type):
@@ -53,7 +89,7 @@ class Ecosystem:
     def remove_creatures(self, creatures):
         for c in creatures:
             if c not in self.creatures:
-                print('\033[4m' + f"Существа {c} не существует" + '\033[0m')
+                self.logger.log(f"Существа {c} не нашлось")
             else:
                 self.creatures.remove(c)
 
@@ -72,7 +108,7 @@ class Ecosystem:
             print("\t" + str(animal))
 
 
-ecosystem = Ecosystem()
+ecosystem = Ecosystem(Logger())
 
 trava = Plant("Трава", "Наземные", 10, [])
 baran = Animal("Баран", "Млекопитающее", 25, [trava])
@@ -87,11 +123,7 @@ ecosystem.add_creature(sova)
 ecosystem.add_creature(mysh)
 
 ecosystem.display()
-ecosystem.remove_creature_by_name("Трава")
-ecosystem.remove_creature_by_name("Трава")
-#ecosystem.remove_creature_by_type("Млекопитающее")
 print("===========================================")
-ecosystem.display()
-print("===========================================")
-print(ecosystem.search_creature_by_name("Баран")[0].prey[0])
-print("Конец")
+
+db = Database("db.csv")
+db.save_ecosystem(ecosystem)
