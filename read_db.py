@@ -1,4 +1,7 @@
 from main2 import *
 
-db =
-e =
+
+if __name__ == '__main__':
+    db = Database("db.csv")
+    e = db.read_ecosystem(Logger())
+    e.display()

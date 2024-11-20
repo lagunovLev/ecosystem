@@ -8,23 +8,31 @@ class Database:
     def save_ecosystem(self, ecosystem):
         with open(self.filename, mode="w", encoding='utf-8') as w_file:
             file_writer = csv.writer(w_file, delimiter=";", lineterminator="\r")
-            file_writer.writerow(["Название", "Тип", "Возраст", "Чем питается"])
+            file_writer.writerow(["Название", "Тип", "Возраст", "Чем питается", "Type"])
             for c in ecosystem.creatures:
-                file_writer.writerow([c.name, c.type, c.age, ''.join(str(x.name) for x in c.prey)])
+                file_writer.writerow([c.name, c.type, c.age, ''.join(str(x.name) for x in c.prey), type(c).__name__])
 
     def read_ecosystem(self, logger):
+        def get_creature(name, type, age, prey, type_as_str):
+            if type_as_str == "Animal":
+                return Animal(name, type, age, prey)
+            else:
+                return Plant(name, type, age, prey)
+
         ecosystem = Ecosystem(logger)
         with open(self.filename, encoding='utf-8') as r_file:
-            file_reader = csv.reader(r_file, delimiter=";")
+            file_reader = csv.reader(r_file, delimiter=";", lineterminator="\r")
+            next(file_reader)
             for row in file_reader:
                 prey = row[3]
                 prey = prey.split(" ")
-                ecosystem.add_creature(Creature(row[0], row[1], row[2], prey))
+                ecosystem.add_creature(get_creature(row[0], row[1], row[2], prey, row[4]))
         for c in ecosystem.creatures:
             prey = c.prey
             c.prey = []
             for prey_name in prey:
-                c.prey.append(ecosystem.search_creature_by_name(prey_name))
+                if prey_name:
+                    c.prey += ecosystem.search_creature_by_name(prey_name)
         return ecosystem
 
 
@@ -108,22 +116,23 @@ class Ecosystem:
             print("\t" + str(animal))
 
 
-ecosystem = Ecosystem(Logger())
+if __name__ == '__main__':
+    ecosystem = Ecosystem(Logger())
 
-trava = Plant("Трава", "Наземные", 10, [])
-baran = Animal("Баран", "Млекопитающее", 25, [trava])
-vodorosly = Plant("Водоросли", "Подводные", 15, [])
-mysh = Animal("Мышь", "Млекопитающее", 3, [])
-sova = Animal("Сова", "Птица", 8, [mysh])
+    trava = Plant("Трава", "Наземные", 10, [])
+    baran = Animal("Баран", "Млекопитающее", 25, [trava])
+    vodorosly = Plant("Водоросли", "Подводные", 15, [])
+    mysh = Animal("Мышь", "Млекопитающее", 3, [])
+    sova = Animal("Сова", "Птица", 8, [mysh])
 
-ecosystem.add_creature(trava)
-ecosystem.add_creature(vodorosly)
-ecosystem.add_creature(baran)
-ecosystem.add_creature(sova)
-ecosystem.add_creature(mysh)
+    ecosystem.add_creature(trava)
+    ecosystem.add_creature(vodorosly)
+    ecosystem.add_creature(baran)
+    ecosystem.add_creature(sova)
+    ecosystem.add_creature(mysh)
 
-ecosystem.display()
-print("===========================================")
+    ecosystem.display()
+    print("===========================================")
 
-db = Database("db.csv")
-db.save_ecosystem(ecosystem)
+    db = Database("db.csv")
+    db.save_ecosystem(ecosystem)
